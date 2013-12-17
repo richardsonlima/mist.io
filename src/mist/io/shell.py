@@ -14,6 +14,7 @@ import paramiko
 import socket
 
 
+
 from mist.io.exceptions import BackendNotFoundError, KeypairNotFoundError
 from mist.io.exceptions import MachineUnauthorizedError
 from mist.io.exceptions import RequiredParameterMissingError
@@ -43,7 +44,7 @@ class Shell(object):
 
     """
 
-    def __init__(self, host, username=None, key=None, password=None, port=22):
+    def __init__(self, host, username=None, key=None, port=22):
         """Initialize a Shell instance
 
         Initializes a Shell instance for host. If username is provided, then
@@ -51,20 +52,34 @@ class Shell(object):
         Check out the docstring of connect().
 
         """
-
         if not host:
             raise RequiredParameterMissingError('host not given')
+
+        self.username = ''
+        self.key = ''
         self.host = host
-        self.sudo = False
+        self.port = port
+        self.timeout = 10
 
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        from fabric.api import run, env
 
-        # if username provided, try to connect
-        if username:
-            self.connect(username, key, password, port)
+        env.abort_on_prompts = True
+        env.no_keys = True
+        env.no_agent = True
+        env.host_string = "%s:%s" % (self.host, self.port)
+        env.warn_only = True
+        env.combine_stderr = True
+        env.keepalive = 15
+        env.key = ''
+        env.user = ''
 
-    def connect(self, username, key=None, password=None, port=22):
+        self.env = env
+        self.run = run
+
+        if username and key:
+            self.connect(username, key)
+
+    def connect(self, username, key):
         """Initialize an SSH connection.
 
         Tries to connect and configure self. If only password is provided, it
@@ -77,77 +92,126 @@ class Shell(object):
 
         """
 
+        self.env.key = key
+        self.env.user = username
         log.info("Attempting to connect to %s@%s:%s.",
                  username, self.host, port)
-        if not key and not password:
-            raise RequiredParameterMissingError("neither key nor password "
-                                                "provided.")
-        if key:
-            with get_temp_file(key) as key_path:
-                rsa_key = paramiko.RSAKey.from_private_key_file(key_path)
-        else:
-            rsa_key = None
 
-        attempts = 3
-        while attempts:
-            attempts -= 1
-            try:
-                self.ssh.connect(
-                    self.host,
-                    port=port,
-                    username=username,
-                    password=password,
-                    pkey=rsa_key,
-                    allow_agent=False,
-                    look_for_keys=False,
-                    timeout=10
-                )
-            except paramiko.AuthenticationException as exc:
-                log.error("ssh exception %r", exc)
-                raise MachineUnauthorizedError("Couldn't connect to %s@%s:%s. %s"
-                                               % (username, self.host, port, exc))
-            except socket.error as exc:
-                log.error("Got ssh error: %r", exc)
-                if not attempts:
-                    raise ServiceUnavailableError("SSH timed-out repeatedly.")
+        ## try:
+        output = self.run(command, timeout=10)
+        return output
+        ## except Exception as e:
+            ## if 'SSH session not active' in e:
+                ## from fabric.state import connections
+                ## conn_keys = [k for k in connections.keys() if host in k]
+                ## for key in conn_keys:
+                    ## del connections[key]
+                ## try:
+                    ## cmd_output = run(command, timeout=COMMAND_TIMEOUT)
+                    ## log.warn("Recovered!")
+                ## except Exception as e:
+                    ## log.error("Failed to recover :(")
+                    ## log.error('Exception while executing command: %s' % e)
+                    ## os.remove(tmp_path)
+                    ## return Response('Exception while executing command: %s' % e, 503)
+            ## else:
+                ## log.error('Exception while executing command: %s' % e)
+                ## os.remove(tmp_path)
+                ## return Response('Exception while executing command: %s' % e, 503)
+        ## except SystemExit as e:
+            ## log.warn('Got SystemExit: %s' % e)
+            ## os.remove(tmp_path)
+            ## return Response('SystemExit: %s' % e, 401)
 
 
-    def disconnect(self):
-        """Close the SSH connection."""
-        log.info("Closing ssh connection to %s", self.host)
+        ## attempts = 3
+        ## while attempts:
+            ## attempts -= 1
+            ## try:
+                ## self.ssh.connect(
+                    ## self.host,
+                    ## port=port,
+                    ## username=username,
+                    ## password=password,
+                    ## pkey=rsa_key,
+                    ## allow_agent=False,
+                    ## look_for_keys=False,
+                    ## timeout=10
+                ## )
+            ## except paramiko.AuthenticationException as exc:
+                ## log.error("ssh exception %r", exc)
+                ## raise MachineUnauthorizedError("Couldn't connect to %s@%s:%s. %s"
+                                               ## % (username, self.host, port, exc))
+            ## except socket.error as exc:
+                ## log.error("Got ssh error: %r", exc)
+                ## if not attempts:
+                    ## raise ServiceUnavailableError("SSH timed-out repeatedly.")
+
+
+    ## def disconnect(self):
+        ## """Close the SSH connection."""
+        ## log.info("Closing ssh connection to %s", self.host)
+        ## try:
+            ## self.ssh.close()
+        ## except:
+            ## pass
+
+    def _check(self, username=None, key=None):
         try:
-            self.ssh.close()
+            self._command('uptime', username, key)
         except:
-            pass
+            return False
+        return True
 
-    def check_sudo(self):
-        """Checks if sudo is installed.
-
-        In case it is self.sudo = True, else self.sudo = False
-
-        """
-        # FIXME
-        stdout, stderr = self.command("which sudo", pty=False)
-        if not stderr:
-            self.sudo = True
-            return True
-
-    def _command(self, cmd, pty=True):
+    def _command(self, cmd, username=None, key=None, pty=True):
         """Helper method used by command and stream_command."""
-        channel = self.ssh.get_transport().open_session()
-        channel.settimeout(10800)
-        stdout = channel.makefile()
-        stderr = channel.makefile_stderr()
-        if pty:
-            # this combines the stdout and stderr streams as if in a pty
-            # if enabled both streams are combined in stdout and stderr file
-            # descriptor isn't used
-            channel.get_pty()
-        # command starts being executed in the background
-        channel.exec_command(cmd)
-        return stdout, stderr
 
-    def command(self, cmd, pty=True):
+        from fabric.context_managers import settings
+
+        try:
+            old_username = self.env.user
+            if username is not None:
+                self.env.user = username
+            old_key = self.env.key
+            if key is not None:
+                self.env.key = key
+            out = self.run(cmd, self.timeout)
+        except SystemExit:
+            # fabric sucks
+            self.env.user = old_username
+            self.env.key = old_key
+            raise MachineUnauthorizedError()
+        except BaseException as exc:
+            log.error("Got ssh exception %r", exc)
+            self.env.user = old_username
+            self.env.key = old_key
+            raise ServiceUnavailableError()
+        return out
+
+        ## try:
+            ## output = self.run(cmd, timeout=10)
+        ## except Exception as e:
+            ## if 'SSH session not active' in e:
+                ## from fabric.state import connections
+                ## conn_keys = [k for k in connections.keys() if self.host in k]
+                ## for key in conn_keys:
+                    ## del connections[key]
+                ## try:
+                    ## output = self.run(command, timeout=10)
+                    ## log.warn("Recovered!")
+                ## except Exception as e:
+                    ## log.error("Failed to recover :(")
+                    ## log.error('Exception while executing command: %s' % e)
+                    ## raise MachineUnauthorizedError()
+            ## else:
+                ## log.error('Exception while executing command: %s' % e)
+                ## raise MachineUnauthorizedError()
+        ## except SystemExit as e:
+            ## log.warn('Got SystemExit: %s' % e)
+            ## raise MachineUnauthorizedError('SystemExit: %s' % e)
+        ## return output
+
+    def command(self, cmd, username=None, key=None, pty=True):
         """Run command and return output.
 
         If pty is True, then it returns a string object that contains the
@@ -157,26 +221,28 @@ class Shell(object):
         stdout and stderr.
 
         """
-        log.info("running command: '%s'", cmd)
-        stdout, stderr = self._command(cmd, pty)
-        if pty:
-            return stdout.read()
-        else:
-            return stdout.read(), stderr.read()
+        ## log.info("running command: '%s'", cmd)
+        ## stdout, stderr = self._command(cmd, pty)
+        ## if pty:
+            ## return stdout.read()
+        ## else:
+            ## return stdout.read(), stderr.read()
+        return self._command(cmd, username, key)
 
-    def command_stream(self, cmd):
+    def command_stream(self, cmd, username=None, key=None):
         """Run command and stream output line by line.
 
         This function is a generator that returns the commands output line
         by line. Use like: for line in command_stream(cmd): print line.
 
         """
-        log.info("running command: '%s'", cmd)
-        stdout, stderr = self._command(cmd)
-        line = stdout.readline()
-        while line:
-            yield line
-            line = stdout.readline()
+        ## log.info("running command: '%s'", cmd)
+        ## stdout, stderr = self._command(cmd)
+        ## line = stdout.readline()
+        ## while line:
+            ## yield line
+            ## line = stdout.readline()
+        return self._command(cmd, username, key).split('\n')
 
     def autoconfigure(self, user, backend_id, machine_id,
                       key_id=None, username=None, password=None):
@@ -254,9 +320,9 @@ class Shell(object):
                         users.append(name)
             for ssh_user in users:
                 try:
-                    self.connect(username=ssh_user,
-                                 key=keypair.private,
-                                 password=password)
+                    self.command(cmd='uptime',
+                                 username=ssh_user,
+                                 key=keypair.private)
                 except MachineUnauthorizedError:
                     continue
                 # this is a hack: if you try to login to ec2 with the wrong
@@ -266,7 +332,8 @@ class Shell(object):
                 # This hack tries to identify when such a thing is happening
                 # and then tries to connect with the username suggested in
                 # the prompt.
-                resp = self.command('uptime')
+                resp = self.command(cmd='uptime', username=ssh_user,
+                                    key=keypair.private)
                 new_ssh_user = None
                 if 'Please login as the user ' in resp:
                     new_ssh_user = resp.split()[5].strip('"')
@@ -276,10 +343,8 @@ class Shell(object):
                 if new_ssh_user:
                     log.info("retrying as %s", new_ssh_user)
                     try:
-                        self.disconnect()
-                        self.connect(username=new_ssh_user,
-                                     key=keypair.private,
-                                     password=password)
+                        self.command(cmd='uptime', username=ssh_user,
+                                     key=keypair.private)
                         ssh_user = new_ssh_user
                     except MachineUnauthorizedError:
                         continue
@@ -289,7 +354,7 @@ class Shell(object):
                          machine_id,
                          time(),
                          ssh_user,
-                         self.check_sudo()]
+                         True]
                 with user.lock_n_load():
                     updated = False
                     for i in range(len(user.keypairs[key_id].machines)):

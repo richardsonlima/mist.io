@@ -10,6 +10,7 @@ requires = [
     'pyramid',
     'apache-libcloud',
     'PasteScript',
+    'fabric',
     'paramiko',
     'pyyaml',
     'pycrypto',

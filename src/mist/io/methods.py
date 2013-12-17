@@ -969,7 +969,7 @@ def ssh_command(user, backend_id, machine_id, host, command,
     key_id, ssh_user = shell.autoconfigure(user, backend_id, machine_id,
                                            key_id, username, password)
     output = shell.command(command)
-    shell.disconnect()
+    ## shell.disconnect()
     return output
 
 
