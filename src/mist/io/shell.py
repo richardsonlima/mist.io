@@ -175,9 +175,11 @@ class Shell(object):
             old_key = self.env.key
             if key is not None:
                 self.env.key = key
+            log.info("Executing '%s' as %s@%s", cmd, self.env.user, self.env.host_string)
             out = self.run(cmd, self.timeout)
         except SystemExit:
             # fabric sucks
+            log.error("Got system exit. Probably authentication failure.")
             self.env.user = old_username
             self.env.key = old_key
             raise MachineUnauthorizedError()
@@ -323,7 +325,7 @@ class Shell(object):
                     self.command(cmd='uptime',
                                  username=ssh_user,
                                  key=keypair.private)
-                except MachineUnauthorizedError:
+                except:
                     continue
                 # this is a hack: if you try to login to ec2 with the wrong
                 # username, it won't fail the connection, so a
@@ -346,7 +348,7 @@ class Shell(object):
                         self.command(cmd='uptime', username=ssh_user,
                                      key=keypair.private)
                         ssh_user = new_ssh_user
-                    except MachineUnauthorizedError:
+                    except:
                         continue
                 # we managed to connect succesfully, return
                 # but first update key
@@ -368,4 +370,5 @@ class Shell(object):
                     user.save()
                 return key_id, ssh_user
 
+        log.error("All attempts failed.")
         raise MachineUnauthorizedError("%s:%s" % (backend_id, machine_id))
