@@ -83,6 +83,13 @@
                 valueBinding="Mist.backendAddController.newBareMetalServerUser"
                 name="create-bareserver-user"
                 id="ROOTcreate-bareserver-user"}}
+
+            <label for="create-bareserver-port" id="Portlabel">5. Port:</label>
+            {{view Mist.TextField
+                valueBinding="Mist.backendAddController.newBareMetalServerPort"
+                name="create-bareserver-port"
+                id="create-bareserver-port"}}
+
         </div>
 
         {{#if view.pendingCreation}}

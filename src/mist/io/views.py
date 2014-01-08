@@ -202,13 +202,17 @@ def add_backend(request):
     # following params are for baremetal
     machine_hostname = params.get('machine_ip_address', '')
     machine_key = params.get('machine_key', '')
-    machine_user = params.get('machine_user', '')
+    machine_user = params.get('machine_user', 'root')
+    try:
+        machine_port = int(params.get('machine_port', 22))
+    except:
+        machine_port = 22
     # TODO: check if all necessary information was provided in the request
 
     user = user_from_request(request)
     backend_id = methods.add_backend(
         user, title, provider, apikey, apisecret, apiurl, tenant_name,
-        machine_hostname, machine_key, machine_user
+        machine_hostname, machine_key, machine_user, machine_port
     )
     backend = user.backends[backend_id]
     return {

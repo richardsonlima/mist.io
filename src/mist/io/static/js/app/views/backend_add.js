@@ -69,6 +69,7 @@ define('app/views/backend_add', [
                     $('#addBackendBareMetal').show();
                     $('#addBackendOpenstack').hide();
                     Mist.backendAddController.set('newBareMetalServerUser', 'root');
+                    Mist.backendAddController.set('newBareMetalServerPort', '22');                    
                 } else {
                     $('#addBackendInfo').show();                 
                     $('#ApiKeylabel').text('2. API Key:');
@@ -143,7 +144,8 @@ define('app/views/backend_add', [
                     "tenant_name": Mist.backendAddController.newBackendTenant,
                     "machine_ip_address": Mist.backendAddController.newBareMetalServerIP,                    
                     "machine_key": Mist.backendAddController.newBareMetalServerKey,                    
-                    "machine_user": Mist.backendAddController.newBareMetalServerUser                                                           
+                    "machine_user": Mist.backendAddController.newBareMetalServerUser,
+                    "machine_port": Mist.backendAddController.newBareMetalServerPort                                                         
                 };
                 $.ajax({
                     url: '/backends',

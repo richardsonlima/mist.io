@@ -76,7 +76,6 @@ class Shell(object):
         Raises MachineUnauthorizedError if it fails to connect.
 
         """
-
         log.info("Attempting to connect to %s@%s:%s.",
                  username, self.host, port)
         if not key and not password:
@@ -179,7 +178,7 @@ class Shell(object):
             line = stdout.readline()
 
     def autoconfigure(self, user, backend_id, machine_id,
-                      key_id=None, username=None, password=None):
+                      key_id=None, username=None, password=None, port=None):
         """Autoconfigure SSH client.
 
         This will do its best effort to find a suitable keypair and username
@@ -190,7 +189,6 @@ class Shell(object):
         username used to connect.
 
         """
-
         log.info("autoconfiguring Shell for machine %s:%s",
                  backend_id, machine_id)
         if backend_id not in user.backends:
@@ -252,11 +250,29 @@ class Shell(object):
                 for name in ['root', 'ubuntu', 'ec2-user']:
                     if name not in users:
                         users.append(name)
+
+            #if port is specified, try this port. Else search if port is already associated with
+            #machine. Otherwise use default 22 port
+            if not port:
+                for keypair in user.keypairs.values():
+                    for machine in keypair.machines:
+                        if machine[:2] == [backend_id, machine_id]:
+                            if len(machine) >= 6:
+                                port = machine[5]
+            #port sanity check
+            try:
+                port = int(port)
+                if not 1<=port<=65535:
+                    raise
+            except:
+                port = 22
+
             for ssh_user in users:
                 try:
                     self.connect(username=ssh_user,
                                  key=keypair.private,
-                                 password=password)
+                                 password=password,
+                                 port=port)
                 except MachineUnauthorizedError:
                     continue
                 # this is a hack: if you try to login to ec2 with the wrong
@@ -279,7 +295,8 @@ class Shell(object):
                         self.disconnect()
                         self.connect(username=new_ssh_user,
                                      key=keypair.private,
-                                     password=password)
+                                     password=password,
+                                     port=port)
                         ssh_user = new_ssh_user
                     except MachineUnauthorizedError:
                         continue
@@ -289,7 +306,8 @@ class Shell(object):
                          machine_id,
                          time(),
                          ssh_user,
-                         self.check_sudo()]
+                         self.check_sudo(),
+                         port]
                 with user.lock_n_load():
                     updated = False
                     for i in range(len(user.keypairs[key_id].machines)):

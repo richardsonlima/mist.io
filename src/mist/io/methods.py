@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 @core_wrapper
 def add_backend(user, title, provider, apikey, apisecret, apiurl, tenant_name,
-                machine_hostname="", machine_key="", machine_user="",
+                machine_hostname="", machine_key="", machine_user="root", machine_port=22,
                 remove_on_error=True):
     """Adds a new backend to the user and returns the new backend_id."""
 
@@ -52,11 +52,10 @@ def add_backend(user, title, provider, apikey, apisecret, apiurl, tenant_name,
                 raise RequiredParameterMissingError('machine_key')
             if machine_key not in user.keypairs:
                 raise KeypairNotFoundError(machine_key)
-            if not machine_user:
-                machine_user = 'root'
 
         machine = model.Machine()
         machine.dns_name = machine_hostname
+        machine.ssh_port = machine_port
         machine.public_ips = [machine_hostname]
         machine_id = machine_hostname.replace('.', '').replace(' ', '')
         machine.name = machine_hostname
@@ -76,7 +75,7 @@ def add_backend(user, title, provider, apikey, apisecret, apiurl, tenant_name,
                 try:
                     ssh_command(
                         user, backend_id, machine_id, machine_hostname, 'uptime',
-                        key_id=machine_key, username=machine_user, password=None
+                        key_id=machine_key, username=machine_user, password=None, port=machine_port,
                     )
                 except MachineUnauthorizedError as exc:
                     # remove backend
@@ -971,7 +970,7 @@ def destroy_machine(user, backend_id, machine_id):
 
 
 def ssh_command(user, backend_id, machine_id, host, command,
-                key_id=None, username=None, password=None):
+                key_id=None, username=None, password=None, port=None):
     """
     We initialize a Shell instant (for mist.io.shell).
 
@@ -982,7 +981,7 @@ def ssh_command(user, backend_id, machine_id, host, command,
 
     shell = Shell(host)
     key_id, ssh_user = shell.autoconfigure(user, backend_id, machine_id,
-                                           key_id, username, password)
+                                           key_id, username, password, port)
     output = shell.command(command)
     shell.disconnect()
     return output
