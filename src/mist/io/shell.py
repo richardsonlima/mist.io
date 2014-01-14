@@ -101,6 +101,7 @@ class Shell(object):
                     look_for_keys=False,
                     timeout=10
                 )
+                break
             except paramiko.AuthenticationException as exc:
                 log.error("ssh exception %r", exc)
                 raise MachineUnauthorizedError("Couldn't connect to %s@%s:%s. %s"
@@ -109,7 +110,6 @@ class Shell(object):
                 log.error("Got ssh error: %r", exc)
                 if not attempts:
                     raise ServiceUnavailableError("SSH timed-out repeatedly.")
-
 
     def disconnect(self):
         """Close the SSH connection."""
