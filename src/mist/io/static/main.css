@@ -1608,6 +1608,7 @@ div.loading-monitoring {
     min-height: 140px;
     height: auto !important;
     overflow-y: scroll !important;
+    white-space: pre-wrap;
 }
 
 #dialog-shell.dialog-shell .ui-accordion .ui-accordion-header .ui-accordion-header-icon {
