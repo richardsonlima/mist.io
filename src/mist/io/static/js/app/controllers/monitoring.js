@@ -804,15 +804,16 @@ define('app/controllers/monitoring', [
             },
 
 
-            /* Zoom Feature 
+            /* 
             *
-            *
-
+            *   Zoom Feature, Make time window bigger or smaller
+            * 
+            */
             Zoom : {
                 in  : function(){},
                 out : function(){},
-                to  : function(){},
-            },*/
+                to  : function(){}
+            },
 
 
             /**
