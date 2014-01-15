@@ -347,6 +347,7 @@ define('app/views/monitoring', [
 
                         // Temporary Debug For Zoom-In-Out Feature
                         if(this.id == 'cpuGraph'){
+                            console.log("Number Of Data In CPU :" + this.displayedData.length);
                             console.log("First Displayed Object:");
                             console.log(this.displayedData[0]);
                             console.log("Last  Displayed Object:");

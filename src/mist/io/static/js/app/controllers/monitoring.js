@@ -559,6 +559,8 @@ define('app/controllers/monitoring', [
                 printInfo: function(){
                     console.log("Time Window    : " + (this.timeWindow/1000) + " seconds");
                     console.log("Last Metric    : " + this.lastMetrictime);
+                    console.log("Start          : " + (new Date(this.timeStart*1000)));
+                    console.log("Stop           : " + (new Date(this.timeStop *1000)));
                     console.log("Step           : " + (this.step/1000) + " seconds");
                     console.log("Update Interval: " + this.updateInterval)
                 }, 
@@ -884,8 +886,11 @@ define('app/controllers/monitoring', [
                     controller.graphs.changeTimeWindow(timeWindow);
 
                     // Currently Step Change Doesn't Work From Machine
-                    //  newStep = (timeWindowInMinutes*60 / 180)*1000;
-                    //controller.request.changeStep(20*1000,false); 
+                    var measurements = 60;
+                    timeWindowInMinutes = timeWindow /60 /1000;
+                    newStep = (timeWindowInMinutes*60 / measurements)*1000;
+                    console.log("New Step: " + newStep);
+                    controller.request.changeStep(newStep,false); 
                     controller.request.changeTimeWindow(timeWindow);
                 }
             },
