@@ -56,6 +56,8 @@ define('app/controllers/monitoring', [
                     timeGap         : 60,                        // Gap between current time and requested
                     callback        : function(result){
                         if(result['status'] == 'success'){
+                            // TEMPORARY Debug for Zoom-In-Out Feaute TODDO Remove It
+                            console.log("%cNumber Of Data Received: " + result['data']['cpu'].length, "color:orange;background-color:black; padding: 0 15px;");
                             self.graphs.updateData(result['data']);
                         }
                     }
@@ -64,6 +66,7 @@ define('app/controllers/monitoring', [
                 this.request.start();
 
             },
+
 
             /**
             *
@@ -77,12 +80,14 @@ define('app/controllers/monitoring', [
                 this.graphs.reset();
             },
 
+
             /**
             *
             *   This object is responsible for data requests
             *
             */
             request: {
+
 
                 /**
                 *   Creates the request. use start() to start the request
@@ -112,6 +117,7 @@ define('app/controllers/monitoring', [
                     this.timeStart       = Math.floor(this.timeStop - this.timeWindow/1000);
                     this.lastMetrictime  = new Date(this.timeStart*1000);
                 },
+
 
                 /**
                 *
@@ -169,6 +175,7 @@ define('app/controllers/monitoring', [
                     this.running = true;
                 },
 
+
                 /**
                 *
                 *   Stops current request
@@ -179,6 +186,7 @@ define('app/controllers/monitoring', [
                     this.running = false;
                     window.clearInterval(window.monitoringInterval);
                 },
+
 
                 /**
                 *
@@ -229,6 +237,7 @@ define('app/controllers/monitoring', [
 
                     reload();
                 },
+
 
                 /**
                 *
@@ -284,6 +293,7 @@ define('app/controllers/monitoring', [
 
                 },
 
+
                 /**
                 *
                 *   Resets the custom request and gets back to the original
@@ -294,21 +304,51 @@ define('app/controllers/monitoring', [
                     this.reload('customRequestReset');
                 },
 
+
                 /**
                 *
                 *   Changes current request step
-                *   @param {number} newStep - The new step
+                *   @param {number}  newStep     - The new step
+                *   @param {boolean} reloadAfter - Change Step And Reload, Default: true
                 */
-                changeStep: function(newStep){
+                changeStep: function(newStep,reloadAfter){
                     this.step = newStep;
-                    this.reload('stepChanged');
+                    reload = (typeof reloadAfter == 'undefined' ? true : reloadAfter);
+                    if(reload)
+                        this.reload('stepChanged');
                 },
-                changeTimeWindow: function(){},
 
+
+                /**
+                *
+                *   Changes current time window
+                *   @param {number} newTimeWindow - The new timeWindow
+                *   @param {boolean} reloadAfter - Change timeWindow And Reload, Default: true
+                */
+                changeTimeWindow: function(newTimeWindow,reloadAfter){
+                    this.timeWindow = newTimeWindow;
+                    reload = (typeof reloadAfter == 'undefined' ? true : reloadAfter);
+                    if(reload)
+                        this.reload('timeWindowChanged');
+                },
+
+
+                /**
+                *
+                *   Enables Updates , Also Animation
+                *   
+                */
                 enableUpdates: function(){
                     this.updateData = true;
                     this.reload('updatesEnabled');
                 },
+
+
+                /**
+                *
+                *   Disables Updates , Also Animation
+                *   
+                */
                 disableUpdates: function(){
                     this.updateData = false;
                     this.reload('updatesDisabled');
@@ -510,6 +550,7 @@ define('app/controllers/monitoring', [
                     });
                 },
 
+
                 /**
                 *
                 *   Prints some debug information
@@ -521,6 +562,7 @@ define('app/controllers/monitoring', [
                     console.log("Step           : " + (this.step/1000) + " seconds");
                     console.log("Update Interval: " + this.updateInterval)
                 }, 
+
 
                 /**
                 *
@@ -559,6 +601,7 @@ define('app/controllers/monitoring', [
 
             },
 
+
             /**
             *
             *   Main object for user actions
@@ -583,6 +626,7 @@ define('app/controllers/monitoring', [
             */
             graphs : {
 
+
                 /**
                 *
                 *   Enable animation of all graphs
@@ -596,6 +640,7 @@ define('app/controllers/monitoring', [
 
                     this.animationEnabled = true;
                 },
+
 
                 /**
                 *
@@ -627,6 +672,20 @@ define('app/controllers/monitoring', [
 
                 /**
                 *
+                *   Change time window
+                *   @param {number} newTimeWindow - The new time window in miliseconds
+                */
+                changeTimeWindow : function(newTimeWindow) {
+
+                    for(metric in this.instances)
+                    {
+                        this.instances[metric].changeTimeWindow(newTimeWindow);
+                    }
+                },
+
+
+                /**
+                *
                 *  Updates graphs data
                 *   @param {object} data - Metrics objects in associative array
                 */
@@ -642,6 +701,7 @@ define('app/controllers/monitoring', [
                     }
                 },
 
+
                 /**
                 *
                 *   Clears all data from graphs
@@ -654,6 +714,7 @@ define('app/controllers/monitoring', [
                         this.instances[metric].clearData();
                     }
                 },
+
 
                 /**
                 *
@@ -694,6 +755,7 @@ define('app/controllers/monitoring', [
 
                 },
 
+
                 /**
                 *
                 *  Expands selected metrics
@@ -732,6 +794,7 @@ define('app/controllers/monitoring', [
                     });
 
                 },
+
 
                 /**
                 *
@@ -784,6 +847,7 @@ define('app/controllers/monitoring', [
                     return collapsedGraphs;
                 },
 
+
                 /**
                 *
                 *  Write collapsed metrics to cookies
@@ -812,7 +876,18 @@ define('app/controllers/monitoring', [
             Zoom : {
                 in  : function(){},
                 out : function(){},
-                to  : function(){}
+                to  : function(timeWindow){
+
+                    controller = Mist.monitoringController;
+                    // TODO BUG Error Warning : If request is not handle at once graph time window will
+                    // change and wrong output will produced
+                    controller.graphs.changeTimeWindow(timeWindow);
+
+                    // Currently Step Change Doesn't Work From Machine
+                    //  newStep = (timeWindowInMinutes*60 / 180)*1000;
+                    //controller.request.changeStep(20*1000,false); 
+                    controller.request.changeTimeWindow(timeWindow);
+                }
             },
 
 
@@ -822,6 +897,7 @@ define('app/controllers/monitoring', [
             *   
             */
             history : {
+
 
                 /**
                 *
@@ -860,6 +936,7 @@ define('app/controllers/monitoring', [
 
                 },
 
+
                 /**
                 *
                 *   Go a timewindow forward
@@ -896,6 +973,7 @@ define('app/controllers/monitoring', [
 
                 },
 
+
                 /**
                 *
                 *   Enable history feature
@@ -918,6 +996,7 @@ define('app/controllers/monitoring', [
                     }
                 },
 
+
                 /**
                 *
                 *  Disable History Feature
@@ -930,6 +1009,7 @@ define('app/controllers/monitoring', [
                     $('#graphsGoForward').addClass('ui-disabled');
                     $('#graphsResetHistory').addClass('ui-disabled');
                 },
+
 
                 /**
                 *

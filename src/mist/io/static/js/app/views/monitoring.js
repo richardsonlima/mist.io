@@ -345,8 +345,13 @@ define('app/views/monitoring', [
                             this.displayedData = this.data;
                         }
 
-                        
-
+                        // Temporary Debug For Zoom-In-Out Feature
+                        if(this.id == 'cpuGraph'){
+                            console.log("First Displayed Object:");
+                            console.log(this.displayedData[0]);
+                            console.log("Last  Displayed Object:");
+                            console.log(this.displayedData[this.displayedData.length-1]);
+                        }
 
                         // If min & max == 0 y axis will not display values. max=1 fixes this.
                         var maxValue = d3.max(this.displayedData, function(d) { return d.value; });
@@ -675,10 +680,10 @@ define('app/views/monitoring', [
                     * Changes time window
                     * @param {number} newTimems - New timewindow in miliseconds
                     */
-                    this.changeTimeToDisplay = function(newTimems){
+                    this.changeTimeWindow = function(newTimeWindow){
 
-                        this.timeDisplayed = newTimems/1000;
-                        this.secondsStep   = Math.floor((newTimems / 1000) / NUM_OF_LABELS);
+                        this.timeDisplayed = newTimeWindow/1000;
+                        this.secondsStep   = Math.floor((newTimeWindow / 1000) / NUM_OF_LABELS);
 
                         this.timeUpdated = true;
                         
