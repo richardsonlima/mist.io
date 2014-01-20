@@ -160,16 +160,16 @@ define('app/controllers/monitoring', [
 
                             // Calculate Start and Stop
                             self.timeStart = Math.floor( self.lastMetrictime.getTime() /1000 ) ;
-                            self.timeStop =  Math.floor( ((new Date()).getTime() - self.timeGap * 1000 ) / 1000 );
+                            self.timeStop  =  Math.floor( ((new Date()).getTime() - self.timeGap * 1000 ) / 1000 );
 
                             // Fix time when lossing precision
                             var stopRemainder = (self.timeStop - self.timeStart) % (self.step/1000);
-                            self.timeStop = self.timeStop - stopRemainder;
+                            self.timeStop     = self.timeStop - stopRemainder;
 
                             // Do the ajax call
                             self.receiveData(self.timeStart, self.timeStop, self.step,self.callback);
 
-                        },this.updateInterval);
+                        },this.step);
                     }
 
                     this.running = true;
@@ -501,10 +501,10 @@ define('app/controllers/monitoring', [
                                     receivedData.networkTX.push(networkTXObj);
 
                                     // Increase time by step for every new measurement
-                                    metricTime = new Date(metricTime.getTime()+10000);
+                                    metricTime = new Date(metricTime.getTime()+step);
                                 }
 
-                                self.lastMetrictime = new Date(metricTime.getTime()-10000);
+                                self.lastMetrictime = new Date(metricTime.getTime()-step);
 
                                 callback({
                                     status: 'success',
@@ -881,17 +881,26 @@ define('app/controllers/monitoring', [
                 to  : function(timeWindow){
 
                     controller = Mist.monitoringController;
+                    
+                    // Temporary:
+                    controller.request.disableUpdates();
+
+                    //controller.request.stop();
+                    // TODO Wait Until Requests Are Really Stopped - Add Callback to stop
+
                     // TODO BUG Error Warning : If request is not handle at once graph time window will
                     // change and wrong output will produced
                     controller.graphs.changeTimeWindow(timeWindow);
 
                     // Currently Step Change Doesn't Work From Machine
                     var measurements = 60;
-                    timeWindowInMinutes = timeWindow /60 /1000;
-                    newStep = (timeWindowInMinutes*60 / measurements)*1000;
+                    timeWindowInMinutes = timeWindow /60 /1000; // TODO change this , we don't really want more variables
+                    newStep = Math.round( (timeWindowInMinutes*60 / measurements)*1000 );
                     console.log("New Step: " + newStep);
                     controller.request.changeStep(newStep,false); 
-                    controller.request.changeTimeWindow(timeWindow);
+                    controller.request.changeTimeWindow(timeWindow,false);
+
+                    controller.request.reload();
                 }
             },
 

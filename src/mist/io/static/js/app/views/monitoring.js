@@ -330,10 +330,34 @@ define('app/views/monitoring', [
                     * redraws value line, x-axis, labels and grid
                     */
                     this.updateView = function() {
-                        
+
+                        var self           = this;
+
+                        var labelTicks = function(axisInstance,numOfLabels){
+
+                            // TODO check if ticks work with float number - Result : They Don't
+
+                            var labelsStep = (self.timeDisplayed / 60) / numOfLabels;
+                            
+                            if(self.id == 'cpuGraph')
+                                console.log("Labels Step: " + labelsStep);
+
+                            // TODO Add this.time.day* for more than hours labels
+                                if(labelsStep <= 60)
+                                    return axisInstance.ticks(d3.time.minutes,labelsStep);
+                                else if(labelsStep / 60 < 24)
+                                    return axisInstance.ticks(d3.time.hours,Math.round(labelsStep));
+                                else
+                                    warn("We can't handle yet Labels More Than 1 Hour");
+                            
+
+                        };
+
+
+
                         this.displayedData = [];
                         this.xCordinates   = [];
-                        var num_of_displayed_measurements = this.timeDisplayed / STEP_SECONDS;
+                        var num_of_displayed_measurements = 60; //this.timeDisplayed / STEP_SECONDS; Todo Add Setter Getter
 
                         // Get only data that will be displayed
                         if(this.data.length > num_of_displayed_measurements) {
@@ -388,7 +412,10 @@ define('app/views/monitoring', [
                                                .tickSize(-this.height, 0, 0)
                                                .tickFormat("");
                         
-                        if (this.secondsStep <= 60) {
+                        // Add This To Function
+
+                        // We Don't really use this
+                        /*if (this.secondsStep <= 60) {
 
                             d3xAxis.call(modelXAxis
                                          .ticks(d3.time.seconds, this.secondsStep)
@@ -396,15 +423,13 @@ define('app/views/monitoring', [
 
                             d3GridX.call(modelGridX
                                          .ticks(d3.time.seconds, this.secondsStep));
-                        }
-                        else if (this.secondsStep <= 18000) {
+                        }*/
 
-                            d3xAxis.call(modelXAxis
-                                         .ticks(d3.time.minutes, this.secondsStep/60)
-                                         .tickFormat(d3.time.format("%I:%M%p")));
+                        if (this.secondsStep <= 18000) {
+                            
+                            d3xAxis.call(labelTicks(modelXAxis,5).tickFormat(d3.time.format("%I:%M%p")));
 
-                            d3GridX.call(modelGridX
-                                         .ticks(d3.time.minutes, this.secondsStep/60));
+                            d3GridX.call(labelTicks(modelGridX,5));
                         }
                         else {
 
@@ -496,6 +521,7 @@ define('app/views/monitoring', [
                                        .attr("transform", "translate(" + margin.left + "," + this.height + ")");
                             }
                         }
+                        
                     };
 
 
