@@ -184,6 +184,7 @@ define('app/views/monitoring', [
                     var STEP_SECONDS = 10;
                     var NUM_OF_MIN_MEASUREMENTS = 8640; // 24 Hours
                     var NUM_OF_MAX_MEASUREMENTS = 8640; // 24 Hours
+                    var d3 = require('d3');
 
                     // Calculate Aspect Ratio Of Height
                     var fixedHeight = 160 / 1280 * width;
@@ -344,9 +345,9 @@ define('app/views/monitoring', [
 
                             // TODO Add this.time.day* for more than hours labels
                                 if(labelsStep <= 60)
-                                    return axisInstance.ticks(d3.time.minutes,labelsStep);
+                                    return axisInstance.ticks(d3.time.minute,labelsStep);
                                 else if(labelsStep / 60 < 24)
-                                    return axisInstance.ticks(d3.time.hours,Math.round(labelsStep));
+                                    return axisInstance.ticks(d3.time.hour,Math.round(labelsStep));
                                 else
                                     warn("We can't handle yet Labels More Than 1 Hour");
                             

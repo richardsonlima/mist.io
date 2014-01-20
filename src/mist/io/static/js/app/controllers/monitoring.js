@@ -479,6 +479,8 @@ define('app/controllers/monitoring', [
                                     var diskWriteObj = {
                                         time: metricTime,
                                         value: data['disk']['write'][disks[0]]['disk_octets'][i]
+                                        // Possible fix for Negative Disk Write And Disk read Values
+                                        // value: data['disk']['write'][disks[0]]['disk_octets'][i] < 0 ? 0 : data['disk']['write'][disks[0]]['disk_octets'][i]
                                     };
 
                                     // TODO Add Multiple Interfaces

@@ -12,7 +12,7 @@ require.config({
         ember: 'lib/ember-1.0.0-rc.3',
         handlebars: 'lib/handlebars-1.0.0-rc.3',
         mobile: 'lib/jquery.mobile-1.3.0',
-        d3: 'lib/d3-2.10.1',
+        d3: 'lib/d3-3.4.1', // d3: 'lib/d3-2.10.1',//
         md5: 'lib/md5',
         sha256: 'lib/sha256',
     },
