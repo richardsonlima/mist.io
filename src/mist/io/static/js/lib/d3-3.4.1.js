@@ -2336,6 +2336,22 @@
       }
       return times;
     }
+    // Step must always be > 1
+    function rangeFixed(t0, t1, dt) {
+      
+      var time = ceil(t0);
+      var times = [];
+      var timePoint = new Date(time);
+      times.push(timePoint);
+
+      while (timePoint < t1) {
+        
+        timePoint = new Date(+timePoint + dt*60*1000);
+        times.push(timePoint);
+      }
+
+    return times;
+    }
     function range_utc(t0, t1, dt) {
       try {
         d3_date = d3_date_utc;
@@ -2351,6 +2367,7 @@
     local.ceil = ceil;
     local.offset = offset;
     local.range = range;
+    local.rangeFixed = rangeFixed;
     var utc = local.utc = d3_time_interval_utc(local);
     utc.floor = utc;
     utc.round = d3_time_interval_utc(round);
@@ -9119,6 +9136,7 @@
     return date.getMinutes();
   });
   d3_time.minutes = d3_time.minute.range;
+  d3_time.minutesFixed = d3_time.minute.rangeFixed;
   d3_time.minutes.utc = d3_time.minute.utc.range;
   d3_time.hour = d3_time_interval(function(date) {
     var timezone = date.getTimezoneOffset() / 60;

@@ -345,7 +345,7 @@ define('app/views/monitoring', [
 
                             // TODO Add this.time.day* for more than hours labels
                                 if(labelsStep <= 60)
-                                    return axisInstance.ticks(d3.time.minute,labelsStep);
+                                    return axisInstance.ticks(d3.time.minutesFixed,labelsStep);
                                 else if(labelsStep / 60 < 24)
                                     return axisInstance.ticks(d3.time.hour,Math.round(labelsStep));
                                 else
