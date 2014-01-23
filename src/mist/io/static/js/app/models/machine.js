@@ -348,12 +348,8 @@ define('app/models/machine', [
                         warn('no auth credentials!');
                         return false;
                     }
-                    var d = new Date();
-                    var nowUTC = String(d.getTime() + d.getTimezoneOffset()*60*1000);
                     payload['email'] = Mist.email;
-                    payload['timestamp'] = nowUTC;
-                    payload['pass'] = CryptoJS.SHA256(Mist.password).toString();
-                    payload['hash'] = CryptoJS.SHA256(Mist.email + ':' + nowUTC + ':' + CryptoJS.SHA256(Mist.password).toString()).toString();
+                    payload['password'] = Mist.password;
                 }
 
                 var that = this;
@@ -373,24 +369,17 @@ define('app/models/machine', [
                             if (prefix.slice(-1) == '/') {
                                 prefix = prefix.substring(0, prefix.length - 1);
                             }
-                            var cmd = 'wget --no-check-certificate ' + prefix + '/core/scripts/deploy_collectd.sh -O - > /tmp/deploy_collectd.sh && $(command -v sudo) chmod +x /tmp/deploy_collectd.sh && $(command -v sudo) /tmp/deploy_collectd.sh ' + data['monitor_server'] + ' ' + data['uuid'] + ' ' + data['passwd'];
-                            //cmd = "sudo su -c '" + cmd + "' || " + cmd;
-                            collectd_install_target = that;
-                            warn(cmd);
-                            that.shell(cmd, function(){}, timeout=300);
+                            that.set('hasMonitoring', true);
                         } else {
                             $('.pending-monitoring h1').text('Disabling collectd');
-                            var cmd = '$(command -v sudo) chmod -x /etc/init.d/collectd && $(command -v sudo) killall -9 collectd';
-                            //cmd = "sudo su -c '" + cmd + "' || " + cmd;
-                            collectd_uninstall_target = that;
-                            that.shell(cmd, function(){});
-                            //remove machine from monitored_machines array
                             var new_monitored_machines = jQuery.grep(Mist.monitored_machines, function(value) {
                                 var machine_arr = [that.backend.id, that.id];
                                 return (!($(value).not(machine_arr).length == 0 && $(machine_arr).not(value).length == 0));
                             });
                             Mist.set('monitored_machines', new_monitored_machines);
+                            that.set('hasMonitoring', false);
                         }
+                        that.set('pendingMonitoring', false);
                         Mist.set('authenticated', true);
                     },
                     error: function(jqXHR, textstate, errorThrown) {
