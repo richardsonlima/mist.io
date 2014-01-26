@@ -334,7 +334,7 @@ define('app/views/monitoring', [
 
                         var self           = this;
 
-                        var labelTicks = function(axisInstance,numOfLabels){
+                        var labelTicks = function(axisInstance,numOfLabels,format){
 
                             // TODO check if ticks work with float number - Result : They Don't
 
@@ -343,14 +343,13 @@ define('app/views/monitoring', [
                             if(self.id == 'cpuGraph')
                                 console.log("Labels Step: " + labelsStep);
 
-                            // TODO Add this.time.day* for more than hours labels
-                                if(labelsStep <= 60)
-                                    return axisInstance.ticks(d3.time.minutesFixed,labelsStep);
-                                else if(labelsStep / 60 < 24)
-                                    return axisInstance.ticks(d3.time.hour,Math.round(labelsStep));
-                                else
-                                    warn("We can't handle yet Labels More Than 1 Hour");
-                            
+                            axisInstance.ticks(d3.time.minutesFixed,labelsStep);
+
+                            if( typeof format != 'undefined')
+                                axisInstance.tickFormat(d3.time.format(format));
+
+                            return axisInstance;
+                                               
 
                         };
 
@@ -426,21 +425,14 @@ define('app/views/monitoring', [
                                          .ticks(d3.time.seconds, this.secondsStep));
                         }*/
 
-                        if (this.secondsStep <= 18000) {
+
+                        var tLabelFormat = "%I:%M%p";
+                        if (this.secondsStep > 18000)
+                            tLabelFormat = "%d-%m | %I:%M%p";
                             
-                            d3xAxis.call(labelTicks(modelXAxis,5).tickFormat(d3.time.format("%I:%M%p")));
 
-                            d3GridX.call(labelTicks(modelGridX,5));
-                        }
-                        else {
-
-                            d3xAxis.call(modelXAxis
-                                         .ticks(d3.time.hours, this.secondsStep/60/60)
-                                         .tickFormat(d3.time.format("%I:%M%p")));
-
-                            d3GridX.call(modelGridX
-                                         .ticks(d3.time.hours, this.secondsStep/60/60));
-                        }
+                        d3xAxis.call(labelTicks(modelXAxis,5,tLabelFormat));
+                        d3GridX.call(labelTicks(modelGridX,5));
 
                         // Set time label at left side
                         d3xAxis.selectAll("text") 
