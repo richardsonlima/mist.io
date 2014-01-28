@@ -697,11 +697,29 @@ define('app/controllers/monitoring', [
 
                     // TODO something with cpuCores property
 
-                    // Then we delete it
+                    // Run before queued actions
+                    var numOfActions = this.updateActions.before.length;
+                    for(var i=0; i<numOfActions; i++){
+
+                        var action = this.updateActions.before.shift();
+                        action();
+                    }
+
+                    // Deleting cpuCores as it is not a metric
                     delete data['cpuCores'];
-                    
+
+                    // Updating
                     for(metric in data){
                         this.instances[metric].updateData(data[metric]);
+                    }
+
+
+                    // Run after queued actions
+                    var numOfActions = this.updateActions.after.length;
+                    for(var i=0; i<numOfActions; i++){
+
+                        var action = this.updateActions.after.shift();
+                        action();
                     }
                 },
 
@@ -799,6 +817,27 @@ define('app/controllers/monitoring', [
 
                 },
 
+                /*
+                * add a function to be called before or after updating graphs 
+                * @param {string}   when   - Posible values 'before' or 'after' (updating)
+                * @param {function} action - The function that will run before or after updating
+                */
+                addNextUpdateAction: function(when,action){
+                    
+                    if(when == 'before')
+                        this.updateActions.before.push(action);
+                    else
+                        this.updateActions.after.push(action);
+                },
+
+                /*
+                *
+                *  Remove all actions from queue
+                */
+                clearNextUpdateActions: function(){
+                    this.updateActions.before = [];
+                    this.updateActions.after  = [];
+                },
 
                 /**
                 *
@@ -808,10 +847,18 @@ define('app/controllers/monitoring', [
                 reset: function() {
                     this.instances        = null;
                     this.animationEnabled = true;
+                    this.updateActions    = {
+                        before : [],
+                        after  : []
+                    };
                 },
 
                 instances        : null,    // Graph Objects created by the view
-                animationEnabled : true
+                animationEnabled : true,
+                updateActions    : {
+                    before : [],
+                    after  : []
+                }
             },
 
 
