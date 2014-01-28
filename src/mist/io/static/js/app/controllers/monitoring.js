@@ -929,17 +929,21 @@ define('app/controllers/monitoring', [
                 out : function(){},
                 to  : function(timeWindow){
 
-                    controller = Mist.monitoringController;
+                    var controller = Mist.monitoringController;
                     
                     // Temporary:
-                    controller.request.disableUpdates();
+                    //controller.request.disableUpdates();
 
-                    //controller.request.stop();
+                    controller.request.stop();
                     // TODO Wait Until Requests Are Really Stopped - Add Callback to stop
 
-                    // TODO BUG Error Warning : If request is not handle at once graph time window will
-                    // change and wrong output will produced
-                    controller.graphs.changeTimeWindow(timeWindow);
+
+                    var changeTimeWindow = function(){
+                        controller.graphs.changeTimeWindow(timeWindow);
+                    }
+
+                    controller.graphs.addNextUpdateAction('before',changeTimeWindow);
+                    
 
                     // Currently Step Change Doesn't Work From Machine
                     var measurements = 60;
