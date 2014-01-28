@@ -443,7 +443,8 @@ def connect_provider(backend):
                 backend.apisecret,
                 ex_force_auth_version=backend.auth_version or '2.0_password',
                 ex_force_auth_url=backend.apiurl,
-                ex_tenant_name=backend.tenant_name
+                ex_tenant_name=backend.tenant_name,
+                ex_force_service_region=backend.region
             )
     elif backend.provider == Provider.LINODE:
         conn = driver(backend.apisecret)
@@ -1345,7 +1346,7 @@ def enable_monitoring(user, backend_id, machine_id,
     }
     #TODO: make ssl verification configurable globally,
     # set to true by default
-    url_scheme = "%s/backends/%s/machines/%/monitoring"
+    url_scheme = "%s/backends/%s/machines/%s/monitoring"
     ret = requests.post(
         url_scheme % (config.CORE_URI, backend_id, machine_id),
         params=payload,
@@ -1377,7 +1378,7 @@ def disable_monitoring(user, backend_id, machine_id):
     }
     #TODO: make ssl verification configurable globally,
     # set to true by default
-    url_scheme = "%s/backends/%s/machines/%/monitoring"
+    url_scheme = "%s/backends/%s/machines/%s/monitoring"
     ret = requests.post(
         url_scheme % (config.CORE_URI, backend_id, machine_id),
         params=payload,
