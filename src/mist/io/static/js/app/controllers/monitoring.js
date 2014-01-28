@@ -382,7 +382,6 @@ define('app/controllers/monitoring', [
                       callback = function(){};
                     }
 
-
                     $.ajax({
                         url: '/backends/' + self.machine.backend.id +
                              '/machines/' + self.machine.id + '/stats',
@@ -924,36 +923,45 @@ define('app/controllers/monitoring', [
             *   Zoom Feature, Make time window bigger or smaller
             * 
             */
-            Zoom : {
+            zoom : {
                 in  : function(){},
                 out : function(){},
                 to  : function(timeWindow){
 
                     var controller = Mist.monitoringController;
+
+                    var zoom = function(){
+
+                        // Check if request is pending
+                        if (controller.request.locked){
+                            console.log("LOCKED!!");
+                            window.setTimeout(zoom,1000);
+                        }
+                        else{
+                            console.log("ZOOMING!!");
+                            var changeTimeWindow = function(){
+                                controller.graphs.changeTimeWindow(timeWindow);
+                            }
+
+                            controller.graphs.addNextUpdateAction('before',changeTimeWindow);
+                            
+
+                            // Currently Step Change Doesn't Work From Machine
+                            var measurements = 60;
+                            timeWindowInMinutes = timeWindow /60 /1000; // TODO change this , we don't really want more variables
+                            newStep = Math.round( (timeWindowInMinutes*60 / measurements)*1000 );
+                            console.log("New Step: " + newStep);
+                            controller.request.changeStep(newStep,false); 
+                            controller.request.changeTimeWindow(timeWindow,false);
+
+                            controller.request.reload();
+                        }
+                    };
                     
-                    // Temporary:
-                    //controller.request.disableUpdates();
 
                     controller.request.stop();
-                    // TODO Wait Until Requests Are Really Stopped - Add Callback to stop
-
-
-                    var changeTimeWindow = function(){
-                        controller.graphs.changeTimeWindow(timeWindow);
-                    }
-
-                    controller.graphs.addNextUpdateAction('before',changeTimeWindow);
                     
-
-                    // Currently Step Change Doesn't Work From Machine
-                    var measurements = 60;
-                    timeWindowInMinutes = timeWindow /60 /1000; // TODO change this , we don't really want more variables
-                    newStep = Math.round( (timeWindowInMinutes*60 / measurements)*1000 );
-                    console.log("New Step: " + newStep);
-                    controller.request.changeStep(newStep,false); 
-                    controller.request.changeTimeWindow(timeWindow,false);
-
-                    controller.request.reload();
+                    zoom();
                 }
             },
 
