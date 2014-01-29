@@ -1,17 +1,27 @@
 <div class="graphControls">
-    <a id='graphsGoBack' href="#" data-role="button" data-inline="true" 
+    <div class='zoomControls' style="border:1px solid grey;margin:10px auto;padding:10px; text-align:center">
+        <h2>Demo Zoom Feature</h2>
+        <div style='display:inline-block;font-weight:bold;'>Current Time Window: </div><div id='currentZoom' style='display:inline-block;'>10m</div>
+
+        <div>
+        <a id='zoomIn'  href="#" dara-role="button" data-inline="true"
+        {{action "in" target="Mist.monitoringController.zoom"}}>In </a>
+        <a id='zoomTo'  href="#" dara-role="button" data-inline="true"
+        {{action "demoTo" target="Mist.monitoringController.zoom"}}>To </a>
+        <a id='zoomOut' href="#" dara-role="button" data-inline="true"
+        {{action "out" target="Mist.monitoringController.zoom"}}>Out</a>
+        </div>
+    
+    </div>
+    <div>
+        <a id='graphsGoBack' href="#" data-role="button" data-inline="true" 
            {{action "goBack" target="Mist.monitoringController.history"}}>&lt;&lt;</a>
-    <!--select id="timeWindowSelect" data-theme="c" {{action "selectPressed" target="view"}}>
-        <option value="5 Minutes" >Display Time:  5 Minutes</option>
-        <option value="10 Minutes" selected="true">Display Time: 10 Minutes</option>
-        <option value="15 Minutes">Display Time: 15 Minutes</option>
-        <option value="30 Minutes">Display Time: 30 Minutes</option>
-        <option value="1 Hour"    >Display Time:  1 Hour   </option>
-    </select-->                           
-     <a id='graphsResetHistory' href="#" data-role="button" data-theme="a" data-inline="true" 
-        {{action "disable" target="Mist.monitoringController.history"}}>Reset</a>
-     <a id='graphsGoForward' href="#" data-role="button" data-inline="true" 
-        {{action "goForward" target="Mist.monitoringController.history"}}>&gt;&gt;</a>
+                          
+        <a id='graphsResetHistory' href="#" data-role="button" data-theme="a" data-inline="true" 
+            {{action "disable" target="Mist.monitoringController.history"}}>Reset</a>
+        <a id='graphsGoForward' href="#" data-role="button" data-inline="true" 
+            {{action "goForward" target="Mist.monitoringController.history"}}>&gt;&gt;</a>
+    </div>
 </div>
 
 <div id="GraphsArea">

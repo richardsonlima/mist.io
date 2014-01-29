@@ -924,8 +924,36 @@ define('app/controllers/monitoring', [
             * 
             */
             zoom : {
-                in  : function(){},
-                out : function(){},
+                // TODO Check if zoom was success to increase the zoom
+                demoTo: function(){
+                    var minutes = prompt("Give time window in minutes, or expressions such as 24*60 for 1day",'10');
+
+                    if(minutes != null){
+                        this.to(eval(minutes)*60*1000);
+                        $('#currentZoom').text(eval(minutes)+'m');
+                    }
+                },
+                in  : function(){
+                    if(this.zoomIndex > 0){
+                        this.zoomIndex--;
+                        this.to(this.zoomValues[this.zoomIndex]*60*1000);
+
+                        // Demo 
+                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]+'m');
+                        
+                    }
+                },
+                out : function(){
+
+                    if(this.zoomIndex < this.zoomValues.length){
+                        this.zoomIndex++;
+                        this.to(this.zoomValues[this.zoomIndex]*60*1000);
+
+                        // Demo 
+                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]+'m');
+                        
+                    }
+                },
                 to  : function(timeWindow){
 
                     var controller = Mist.monitoringController;
@@ -962,7 +990,21 @@ define('app/controllers/monitoring', [
                     controller.request.stop();
                     
                     zoom();
-                }
+                },
+
+                zoomValues: [ // in minitues
+                        10, // 10 Minutes
+                        30, // 30 Minutes
+                        60, // 60 Minutes
+                      5*60, // 5  Hours
+                     12*60, // 12 Hours
+                     24*60, // 1  Day
+                   5*24*60, // 5  Days
+                   7*24*60, // 1  Week
+                  30*24*60, // 1  Month
+                ],
+
+                zoomIndex: 0
             },
 
 
