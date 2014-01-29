@@ -994,12 +994,8 @@ define('app/controllers/monitoring', [
 
                 zoomValues: [ // in minitues
                         10, // 10 Minutes
-                        30, // 30 Minutes
-                        60, // 60 Minutes
-                      5*60, // 5  Hours
-                     12*60, // 12 Hours
+                        60, // 1  Hour
                      24*60, // 1  Day
-                   5*24*60, // 5  Days
                    7*24*60, // 1  Week
                   30*24*60, // 1  Month
                 ],
