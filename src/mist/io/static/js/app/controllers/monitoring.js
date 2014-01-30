@@ -1013,7 +1013,7 @@ define('app/controllers/monitoring', [
                                 
                                 } 
                                 else
-                                    self.updateLabel();
+                                    self.updateUI();
 
 
                             })
