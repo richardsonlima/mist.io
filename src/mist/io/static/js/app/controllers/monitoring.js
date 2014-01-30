@@ -950,10 +950,6 @@ define('app/controllers/monitoring', [
                     if(this.zoomIndex > 0){
                         this.zoomIndex--;
                         this.to(this.zoomValues[this.zoomIndex]['value']*60*1000);
-
-                        // Demo 
-                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
-                        
                     }
                 },
                 out : function(){
@@ -962,15 +958,14 @@ define('app/controllers/monitoring', [
                         this.zoomIndex++;
                         this.to(this.zoomValues[this.zoomIndex]['value']*60*1000);
                         console.log("Zoom to index : " + this.zoomIndex);
-                        // Demo 
-                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
-                        
                     }
                 },
-                to  : function(timeWindow){
+                // direction is optional, used for in and out
+                to  : function(timeWindow,direction){
 
                     var controller = Mist.monitoringController;
                     var self = this;
+                    direction = (typeof direction == 'undefined' ? null : direction);
 
                     var zoom = function(){
 
@@ -1008,6 +1003,18 @@ define('app/controllers/monitoring', [
                                 console.log("Status: " + status);
                                 if(zoomID==requestID)
                                     self.enable();
+                                if(status!='success'){
+
+                                    // Revert Index
+                                    if(direction == 'in')
+                                        self.zoomIndex++;
+                                    else if(direction =='out')
+                                        self.zoomIndex--;
+                                
+                                } 
+                                else
+                                    self.updateLabel();
+
 
                             })
                         }
@@ -1017,6 +1024,11 @@ define('app/controllers/monitoring', [
                     controller.request.stop();
                     
                     zoom();
+                },
+
+                updateUI : function(){
+
+                    $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
                 },
 
                 disable: function(){
