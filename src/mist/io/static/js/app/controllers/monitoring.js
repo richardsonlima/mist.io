@@ -78,6 +78,7 @@ define('app/controllers/monitoring', [
                 this.request.reset();
                 this.history.reset();
                 this.graphs.reset();
+                this.zoom.reset();
             },
 
 
@@ -148,6 +149,7 @@ define('app/controllers/monitoring', [
                     this.machine.set('pendingStats', true);
 
                     // Do the ajax call
+                    this.requestID++;
                     this.receiveData(this.timeStart, this.timeStop, this.step,this.callback);
 
 
@@ -167,12 +169,15 @@ define('app/controllers/monitoring', [
                             self.timeStop     = self.timeStop - stopRemainder;
 
                             // Do the ajax call
+                            this.requestID++;
                             self.receiveData(self.timeStart, self.timeStop, self.step,self.callback);
 
                         },this.step);
                     }
 
                     this.running = true;
+
+                    return this.requestID;
                 },
 
 
@@ -230,12 +235,12 @@ define('app/controllers/monitoring', [
                                 callback        : self.callback
                            }); 
 
-                           self.start();
+                           return self.start();
                         }
 
                     };
 
-                    reload();
+                    return reload();
                 },
 
 
@@ -374,6 +379,7 @@ define('app/controllers/monitoring', [
                 */
                 receiveData: function(start,stop,step,callback){
 
+                    var requestID  = this.requestID; 
                     var controller = Mist.monitoringController;
                     var self = this;
 
@@ -511,6 +517,8 @@ define('app/controllers/monitoring', [
                                     status: 'success',
                                     data  : receivedData
                                 });
+
+                                $(document).trigger('finishedFetching',[requestID,'success']);
                             }
                             catch(err) {
                                 error(err);
@@ -519,6 +527,8 @@ define('app/controllers/monitoring', [
                                     status: 'error',
                                     error: err
                                 });
+
+                                $(document).trigger('finishedFetching',[requestID,'failure']);
                             }
 
                             self.machine.set('pendingStats', false);
@@ -544,6 +554,7 @@ define('app/controllers/monitoring', [
                                 status: 'error',
                                 error: errorThrown
                             });
+                            $(document).trigger('finishedFetching',[requestID,'failure']);
 
                             self.machine.set('pendingStats', false);
                             self.locked = false;
@@ -586,6 +597,7 @@ define('app/controllers/monitoring', [
                     this.locked         = false; 
                     this.running        = false;
                     this.initialized    = false;
+                    this.requestID      = 0;
                 },
                 
                 machine        : null,  // TODO Add more description in comments
@@ -601,6 +613,7 @@ define('app/controllers/monitoring', [
                 locked         : false, // boolean 
                 running        : false, // boolean
                 initialized    : false, // boolean
+                requestID      : 0,     // integer index
 
             },
 
@@ -957,6 +970,7 @@ define('app/controllers/monitoring', [
                 to  : function(timeWindow){
 
                     var controller = Mist.monitoringController;
+                    var self = this;
 
                     var zoom = function(){
 
@@ -966,7 +980,12 @@ define('app/controllers/monitoring', [
                             window.setTimeout(zoom,1000);
                         }
                         else{
+
+                            self.disable();
                             console.log("ZOOMING!!");
+                                
+
+
                             var changeTimeWindow = function(){
                                 controller.graphs.changeTimeWindow(timeWindow);
                             }
@@ -982,7 +1001,15 @@ define('app/controllers/monitoring', [
                             controller.request.changeStep(newStep,false); 
                             controller.request.changeTimeWindow(timeWindow,false);
 
-                            controller.request.reload();
+                            var zoomID = controller.request.reload();
+
+                            $(document).one('finishedFetching',function(event,requestID,status){
+                                console.log("ID: " + zoomID);
+                                console.log("Status: " + status);
+                                if(zoomID==requestID)
+                                    self.enable();
+
+                            })
                         }
                     };
                     
@@ -1004,6 +1031,10 @@ define('app/controllers/monitoring', [
                     $('#zoomInBtn').removeClass('ui-disabled');
                     $('#zoomOutBtn').removeClass('ui-disabled');
                     $('#zoomToBtn').removeClass('ui-disabled');
+                },
+
+                reset: function(){
+                    this.zoomIndex = 0;
                 },
 
                 zoomValues: [ // in minitues
