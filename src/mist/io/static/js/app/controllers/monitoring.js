@@ -936,21 +936,21 @@ define('app/controllers/monitoring', [
                 in  : function(){
                     if(this.zoomIndex > 0){
                         this.zoomIndex--;
-                        this.to(this.zoomValues[this.zoomIndex]*60*1000);
+                        this.to(this.zoomValues[this.zoomIndex]['value']*60*1000);
 
                         // Demo 
-                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]+'m');
+                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
                         
                     }
                 },
                 out : function(){
 
-                    if(this.zoomIndex < this.zoomValues.length){
+                    if(this.zoomIndex < this.zoomValues.length-1){
                         this.zoomIndex++;
-                        this.to(this.zoomValues[this.zoomIndex]*60*1000);
-
+                        this.to(this.zoomValues[this.zoomIndex]['value']*60*1000);
+                        console.log("Zoom to index : " + this.zoomIndex);
                         // Demo 
-                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]+'m');
+                        $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
                         
                     }
                 },
@@ -993,11 +993,11 @@ define('app/controllers/monitoring', [
                 },
 
                 zoomValues: [ // in minitues
-                        10, // 10 Minutes
-                        60, // 1  Hour
-                     24*60, // 1  Day
-                   7*24*60, // 1  Week
-                  30*24*60, // 1  Month
+                        { label: '10 minutes', value: 10       },
+                        { label: '1 hour    ', value: 60       },
+                        { label: '1 day     ', value: 24*60    },
+                        { label: '1 week    ', value: 7*24*60  },
+                        { label: '1 month   ', value: 30*24*60 }
                 ],
 
                 zoomIndex: 0
