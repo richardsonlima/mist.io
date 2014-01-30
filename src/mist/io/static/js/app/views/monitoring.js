@@ -142,9 +142,9 @@ define('app/views/monitoring', [
                 $('#graphsResetHistory').button();
 
                 // Zoom Buttons
-                $('#zoomIn').button();
-                $('#zoomOut').button();
-                $('#zoomTo').button();
+                $('#zoomInBtn').button();
+                $('#zoomOutBtn').button();
+                $('#zoomToBtn').button();
 
                 // Disable History
                 $('#graphsGoForward').addClass('ui-disabled');

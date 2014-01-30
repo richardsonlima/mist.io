@@ -992,6 +992,20 @@ define('app/controllers/monitoring', [
                     zoom();
                 },
 
+                disable: function(){
+
+                    $('#zoomInBtn').addClass('ui-disabled');
+                    $('#zoomOutBtn').addClass('ui-disabled');
+                    $('#zoomToBtn').addClass('ui-disabled');
+                },
+
+                enable: function(){
+
+                    $('#zoomInBtn').removeClass('ui-disabled');
+                    $('#zoomOutBtn').removeClass('ui-disabled');
+                    $('#zoomToBtn').removeClass('ui-disabled');
+                },
+
                 zoomValues: [ // in minitues
                         { label: '10 minutes', value: 10       },
                         { label: '1 hour    ', value: 60       },
