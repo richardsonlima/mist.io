@@ -2343,8 +2343,8 @@
       var times = [];
       var timePoint = new Date(time);
       times.push(timePoint);
-
-      while (timePoint < t1) {
+      
+      while ( (+timePoint + dt*60*1000)  <= +t1) {
         
         timePoint = new Date(+timePoint + dt*60*1000);
         times.push(timePoint);
