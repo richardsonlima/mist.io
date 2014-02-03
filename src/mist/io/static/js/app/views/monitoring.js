@@ -358,6 +358,28 @@ define('app/views/monitoring', [
 
                         };
 
+                        var labelTicksFixed = function(axisInstance,format) {
+
+                            // Check Time Displayed
+                            var labelStep;
+                            if(self.timeDisplayed <= 10*60) // 10 Minutes
+                                axisInstance.ticks(d3.time.minutes,2);
+                            else if(self.timeDisplayed <= 1*60*60) // 1 Hour
+                                axisInstance.ticks(d3.time.minutes,12);
+                            else if(self.timeDisplayed <= 24*60*60) // 1 Day
+                                axisInstance.ticks(d3.time.hours,6);
+                            else if(self.timeDisplayed <= 7*24*60*60) // 1 Week
+                                axisInstance.ticks(d3.time.days,1);
+                            else if(self.timeDisplayed <= 30*7*24*60*60) // 1 Month
+                                axisInstance.ticks(d3.time.days,7);
+                            // TODO Add week and month
+
+                            if( typeof format != 'undefined')
+                                axisInstance.tickFormat(d3.time.format(format));
+
+                            return axisInstance;
+                        };
+
 
 
                         this.displayedData = [];
@@ -436,8 +458,8 @@ define('app/views/monitoring', [
                             tLabelFormat = "%d-%m | %I:%M%p";
                             
 
-                        d3xAxis.call(labelTicks(modelXAxis,5,tLabelFormat));
-                        d3GridX.call(labelTicks(modelGridX,5));
+                        d3xAxis.call(labelTicksFixed(modelXAxis,tLabelFormat));
+                        d3GridX.call(labelTicksFixed(modelGridX));
 
                         // Set time label at left side
                         d3xAxis.selectAll("text") 
