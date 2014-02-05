@@ -56,8 +56,7 @@ define('app/controllers/monitoring', [
                     timeGap         : 60,                        // Gap between current time and requested
                     callback        : function(result){
                         if(result['status'] == 'success'){
-                            // TEMPORARY Debug for Zoom-In-Out Feaute TODDO Remove It
-                            console.log("%cNumber Of Data Received: " + result['data']['cpu'].length, "color:orange;background-color:black; padding: 0 15px;");
+                            //console.log("%cNumber Of Data Received: " + result['data']['cpu'].length, "color:orange;background-color:black; padding: 0 15px;");
                             self.graphs.updateData(result['data']);
                         }
                     }
@@ -949,7 +948,6 @@ define('app/controllers/monitoring', [
                     if(this.zoomIndex < this.zoomValues.length-1){
                         this.zoomIndex++;
                         this.to(this.zoomValues[this.zoomIndex]['value']*60*1000);
-                        console.log("Zoom to index : " + this.zoomIndex);
                     }
                 },
                 // direction is optional, used for in and out
@@ -963,14 +961,12 @@ define('app/controllers/monitoring', [
 
                         // Check if request is pending
                         if (controller.request.locked){
-                            console.log("LOCKED!!");
+
                             window.setTimeout(zoom,1000);
                         }
                         else{
 
                             self.disable();
-                            console.log("ZOOMING!!");
-                                
 
 
                             var changeTimeWindow = function(){
@@ -984,15 +980,13 @@ define('app/controllers/monitoring', [
                             var measurements = 60;
                             timeWindowInMinutes = timeWindow /60 /1000; // TODO change this , we don't really want more variables
                             newStep = Math.round( (timeWindowInMinutes*60 / measurements)*1000 );
-                            console.log("New Step: " + newStep);
                             controller.request.changeStep(newStep,false); 
                             controller.request.changeTimeWindow(timeWindow,false);
 
                             var zoomID = controller.request.reload();
 
                             $(document).one('finishedFetching',function(event,requestID,status){
-                                console.log("ID: " + zoomID);
-                                console.log("Status: " + status);
+
                                 if(zoomID==requestID)
                                     self.enable();
                                 if(status!='success'){
