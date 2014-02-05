@@ -455,7 +455,8 @@ define('app/views/monitoring', [
 
 
                         var tLabelFormat = "%I:%M%p";
-                        if (this.secondsStep > 18000)
+
+                        if (this.timeDisplayed >= 24*60*60)
                             tLabelFormat = "%d-%m | %I:%M%p";
                             
 
