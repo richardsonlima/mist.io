@@ -937,15 +937,7 @@ define('app/controllers/monitoring', [
             * 
             */
             zoom : {
-                // TODO Check if zoom was success to increase the zoom
-                demoTo: function(){
-                    var minutes = prompt("Give time window in minutes, or expressions such as 24*60 for 1day",'10');
 
-                    if(minutes != null){
-                        this.to(eval(minutes)*60*1000);
-                        $('#currentZoom').text(eval(minutes)+'m');
-                    }
-                },
                 in  : function(){
                     if(this.zoomIndex > 0){
                         this.zoomIndex--;
@@ -1029,23 +1021,33 @@ define('app/controllers/monitoring', [
                 updateUI : function(){
 
                     $('#currentZoom').text(this.zoomValues[this.zoomIndex]['label']);
+
+                    // Enable disable in/out buttons when we are at zoom borders
+                    if(this.zoomIndex == 0)
+                        $('#zoomInBtn').addClass('ui-disabled');
+                    else if(this.zoomIndex == this.zoomValues.length-1)
+                        $('#zoomOutBtn').addClass('ui-disabled');
+                    else {
+                        $('#zoomInBtn').removeClass('ui-disabled');
+                        $('#zoomOutBtn').removeClass('ui-disabled');
+                    }
                 },
 
                 disable: function(){
 
                     $('#zoomInBtn').addClass('ui-disabled');
                     $('#zoomOutBtn').addClass('ui-disabled');
-                    $('#zoomToBtn').addClass('ui-disabled');
                 },
 
                 enable: function(){
 
+                    this.updateUI();
                     $('#zoomInBtn').removeClass('ui-disabled');
                     $('#zoomOutBtn').removeClass('ui-disabled');
-                    $('#zoomToBtn').removeClass('ui-disabled');
                 },
 
                 reset: function(){
+                    this.updateUI();
                     this.zoomIndex = 0;
                 },
 
