@@ -186,9 +186,9 @@ define('app/views/monitoring', [
             Graph: function(divID,width,timeToDisplayms,yAxisValueFormat){
 
                     var NUM_OF_LABELS = 5;
-                    var STEP_SECONDS = 10;
                     var NUM_OF_MIN_MEASUREMENTS = 8640; // 24 Hours
                     var NUM_OF_MAX_MEASUREMENTS = 8640; // 24 Hours
+                    var NUM_OF_MEASUREMENT = 60; // Number of metrics monitor sends in every request
                     
 
                     // Calculate Aspect Ratio Of Height
@@ -259,8 +259,9 @@ define('app/views/monitoring', [
                             var measurements_received = newData.length;
                             if(measurements_received < NUM_OF_MIN_MEASUREMENTS)
                             {
+                                var step = (this.timeDisplayed / NUM_OF_MEASUREMENT);
                                 // Get First Measurement Time
-                                metricTime = new Date(newData[0].time.getTime() - STEP_SECONDS*1000);
+                                metricTime = new Date(newData[0].time.getTime() - step*1000);
 
                                 // Fill Data With Zeros
                                 for(var i= 0; i < (NUM_OF_MIN_MEASUREMENTS - measurements_received); i++)
@@ -272,7 +273,7 @@ define('app/views/monitoring', [
                                     }
 
                                     dataBuffer.push(zeroObject);
-                                    metricTime = new Date(metricTime.getTime() - STEP_SECONDS*1000);
+                                    metricTime = new Date(metricTime.getTime() - step*1000);
                                 }
                                 // Set Real Data Start Index
                                 this.realDataIndex = dataBuffer.length;
@@ -385,6 +386,7 @@ define('app/views/monitoring', [
                         this.displayedData = [];
                         this.xCordinates   = [];
                         var num_of_displayed_measurements = 60; //this.timeDisplayed / STEP_SECONDS; Todo Add Setter Getter
+                        console.log("Step : " +  (this.timeDisplayed / 60) + ' seconds');
 
                         // Get only data that will be displayed
                         if(this.data.length > num_of_displayed_measurements) {
@@ -495,7 +497,8 @@ define('app/views/monitoring', [
                         if(!this.timeUpdated && this.animationEnabled)
                         {
 
-                            var animationDuration = STEP_SECONDS*1000;
+                            var step = (this.timeDisplayed / NUM_OF_MEASUREMENT);
+                            var animationDuration = step*1000;
                             
                             // Update Animated Line
                             d3vLine.attr("transform", "translate(" + this.valuesDistance + ")")
