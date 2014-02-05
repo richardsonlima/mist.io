@@ -1163,6 +1163,8 @@ define('app/controllers/monitoring', [
 
                         $('#graphsGoForward').removeClass('ui-disabled');
                         $('#graphsResetHistory').removeClass('ui-disabled');
+
+                        Mist.monitoringController.zoom.disable();
                     }
                 },
 
@@ -1178,6 +1180,8 @@ define('app/controllers/monitoring', [
 
                     $('#graphsGoForward').addClass('ui-disabled');
                     $('#graphsResetHistory').addClass('ui-disabled');
+
+                    Mist.monitoringController.zoom.enable();
                 },
 
 

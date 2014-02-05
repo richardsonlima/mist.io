@@ -385,8 +385,7 @@ define('app/views/monitoring', [
 
                         this.displayedData = [];
                         this.xCordinates   = [];
-                        var num_of_displayed_measurements = 60; //this.timeDisplayed / STEP_SECONDS; Todo Add Setter Getter
-                        console.log("Step : " +  (this.timeDisplayed / 60) + ' seconds');
+                        var num_of_displayed_measurements = 60; 
 
                         // Get only data that will be displayed
                         if(this.data.length > num_of_displayed_measurements) {
