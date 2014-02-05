@@ -189,7 +189,7 @@ define('app/views/monitoring', [
                     var STEP_SECONDS = 10;
                     var NUM_OF_MIN_MEASUREMENTS = 8640; // 24 Hours
                     var NUM_OF_MAX_MEASUREMENTS = 8640; // 24 Hours
-                    var d3 = require('d3');
+                    
 
                     // Calculate Aspect Ratio Of Height
                     var fixedHeight = 160 / 1280 * width;
