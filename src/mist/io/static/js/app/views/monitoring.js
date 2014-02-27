@@ -193,6 +193,7 @@ define('app/views/monitoring', ['app/views/templated','ember'],
                     this.timeDisplayed    = timeToDisplayms/1000;
                     this.timeUpdated      = false;
                     this.animationEnabled = true;
+                    this.d3Animation      = false;
                     this.yAxisValueFormat = yAxisValueFormat;
                     this.isAppended       = false;
                     this.displayedData    = [];
@@ -240,6 +241,88 @@ define('app/views/monitoring', ['app/views/templated','ember'],
 
                     //--------------------------------------------------------------------------------------------
 
+                    /**
+                    *
+                    * Animation constructor for d3 svg elements
+                    * 
+                    * @param {number} fps        -
+                    * @param {number} duration   - 
+                    * @param {number} d3selector -
+                    *
+                    */
+                    function Animation(fps,duration,d3selector){
+
+                        var self = this;
+                        var stopTriggered = false;
+
+                        this.fps        = fps;
+                        this.duration   = duration;
+                        this.isRunning  = false;
+                        this.d3selector = d3selector;
+
+
+                        this.toString = function(){
+                            console.log("FPS     : " + this.fps);
+                            console.log("Duration: " + this.duration);
+                            console.log("Running : " + this.isRunning);
+                            console.log("Selector: " + this.d3selector);
+                        }
+
+                        this.start = function(translate_start,translate_stop){
+
+                            // Check if previous animation is running and stop it
+                            var startAnimation  = function(){
+                                if(self.isRunning){
+                                    self.stop();
+                                    window.setTimeout(startAnimation,100);
+                                } 
+                                else {
+
+                                    self.isRunning = true;
+
+                                    var intervalTime = 1000 / self.fps;
+                                    var frame = 0;
+
+                                    var start = d3.transform( "translate(" + translate_start.x  + "," + translate_start.y + ")");
+                                    var stop   = d3.transform("translate(" + translate_stop.x   + "," + translate_stop.y  + ")")
+                                    var interpolate = d3.interpolateTransform(start,stop);
+
+                                    // Initial Start
+                                    self.d3selector.attr("transform", interpolate(0));
+                                    
+                                    // Create Interval For The Animation
+                                    var animation_interval = window.setInterval(function(){
+
+                                        frame++;
+                                        if(frame == self.fps * self.duration || stopTriggered){
+
+                                            // Make sure transform is in the final form
+                                            var transformValue = interpolate(1);
+                                            self.d3selector.attr("transform", transformValue);
+                                            stopTriggered = false;
+                                            self.isRunning = false;
+                                            window.clearInterval(animation_interval);
+                                        }
+
+                                        // Get transform Value and aply it to the DOM
+                                        var transformValue = interpolate(frame/(self.fps * self.duration));
+                                        self.d3selector.attr("transform", transformValue);
+
+                                    },intervalTime);
+                                }
+                            }
+                            startAnimation();
+
+                        }
+
+                        this.stop = function(){
+                            stopTriggered = true;
+                        }
+
+                        var reset = function(){
+                            // TODO
+                        }
+                    }
 
                     /**
                     *
@@ -433,36 +516,56 @@ define('app/views/monitoring', ['app/views/templated','ember'],
                         if(!this.timeUpdated && this.animationEnabled)
                         {
 
+
                             var step = (this.timeDisplayed / NUM_OF_MEASUREMENT);
                             var animationDuration = step*1000;
-                            
-                            // Update Animated Line and Area
-                            d3vLine.attr("transform", "translate(" + this.valuesDistance + ")")
-                                   .attr("d", valueLinePath)
-                                   .transition()
-                                   .ease("linear")
-                                   .duration(animationDuration)
-                                   .attr("transform", "translate(" + 0 + ")");
 
-                            d3vArea.attr("transform", "translate(" + this.valuesDistance + ")")
-                                   .attr("d", valueAreaPath)
-                                   .transition()
-                                   .ease("linear")
-                                   .duration(animationDuration)
-                                   .attr("transform", "translate(" + 0 + ")");
 
-                            // Animate Axis And Grid
-                            d3xAxis.attr("transform", "translate(" + ( margin.left + this.valuesDistance) + ","+ (this.height - margin.bottom +2) +")")
-                                   .transition()
-                                   .ease("linear")
-                                   .duration(animationDuration)
-                                   .attr("transform", "translate(" +  margin.left + "," + (this.height - margin.bottom +2) + ")");
+                            if(this.d3Animation){
+                                // Update Animated Line and Area
+                                d3vLine.attr("transform", "translate(" + this.valuesDistance + ")")
+                                       .attr("d", valueLinePath)
+                                       .transition()
+                                       .ease("linear")
+                                       .duration(animationDuration)
+                                       .attr("transform", "translate(" + 0 + ")");
 
-                            d3GridX.attr("transform", "translate(" + (margin.left + this.valuesDistance) + ","+ this.height +")")
-                                   .transition()
-                                   .ease("linear")
-                                   .duration(animationDuration)
-                                   .attr("transform", "translate(" + margin.left + "," + this.height + ")");
+                                d3vArea.attr("transform", "translate(" + this.valuesDistance + ")")
+                                       .attr("d", valueAreaPath)
+                                       .transition()
+                                       .ease("linear")
+                                       .duration(animationDuration)
+                                       .attr("transform", "translate(" + 0 + ")");
+
+                                // Animate Axis And Grid
+                                d3xAxis.attr("transform", "translate(" + ( margin.left + this.valuesDistance) + ","+ (this.height - margin.bottom +2) +")")
+                                       .transition()
+                                       .ease("linear")
+                                       .duration(animationDuration)
+                                       .attr("transform", "translate(" +  margin.left + "," + (this.height - margin.bottom +2) + ")");
+
+                                d3GridX.attr("transform", "translate(" + (margin.left + this.valuesDistance) + ","+ this.height +")")
+                                       .transition()
+                                       .ease("linear")
+                                       .duration(animationDuration)
+                                       .attr("transform", "translate(" + margin.left + "," + this.height + ")");
+                            } 
+                            else {
+
+                                // Update path points
+                                d3vLine.attr("d", valueLinePath);
+                                d3vArea.attr("d", valueAreaPath);
+                                    
+                                // Start custom animation
+                                d3vLine.animation.start({x:this.valuesDistance,y:0},{x:0,y:0});
+                                d3vArea.animation.start({x:this.valuesDistance,y:0},{x:0,y:0});
+                                
+                                d3xAxis.animation.start({x: margin.left + this.valuesDistance, y: this.height - margin.bottom +2},
+                                                        {x: margin.left,                       y: this.height - margin.bottom +2});
+                                d3GridX.animation.start({x: margin.left + this.valuesDistance, y: this.height },
+                                                        {x: margin.left,                       y: this.height });
+                            }
+
                         }
                         else {
 
@@ -767,6 +870,17 @@ define('app/views/monitoring', ['app/views/templated','ember'],
                                      .attr("transform", "translate(" + margin.left + "," + (margin.top) + ")");
                     }
 
+                    function setupAnimation(){
+
+                        var FPS      = 12;
+                        var duration = 10; // seconds
+
+                        d3vLine.animation = new Animation(FPS,duration,d3vLine);
+                        d3vArea.animation = new Animation(FPS,duration,d3vArea);
+                        d3xAxis.animation = new Animation(FPS,duration,d3xAxis);
+                        d3GridX.animation = new Animation(FPS,duration,d3GridX);
+                    }
+
                     /*
                     *
                     * Setups event listeners for mouse,
@@ -921,6 +1035,7 @@ define('app/views/monitoring', ['app/views/templated','ember'],
                     */
                     function onInitialized(){
 
+                      setupAnimation();
                       setupMouseOver();
                     }
 
