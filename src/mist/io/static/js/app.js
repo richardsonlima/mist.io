@@ -165,7 +165,7 @@ define( 'app', [
 
         // Globals
         App.set('isCordova',IS_CORDOVA);
-        App.set('baseURL',IS_CORDOVA ? "https://mist.io" : "");
+        App.set('baseURL',IS_CORDOVA ? "http://localhost:6543" : "");
         App.set('isCore', !!IS_CORE);
         App.set('authenticated', AUTH || IS_CORE);
         App.set('ajax', new AJAX(CSRF_TOKEN));
