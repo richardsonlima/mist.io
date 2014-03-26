@@ -57,7 +57,7 @@ define('app/controllers/login', ['ember'],
 
 
             logout: function() {
-                window.location = Mist.baseURL + '/logout';
+                window.location = (Cordova ? Cordova.baseURL : "") + '/logout';
             },
 
 
