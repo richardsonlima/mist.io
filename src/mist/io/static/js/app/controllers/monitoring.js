@@ -1083,7 +1083,7 @@ define('app/controllers/monitoring', [
             *
             */
             zoom : {
-
+                /* Commented out because we don't currently use them and causes problem to cordova(in property)
                 in  : function(){
                     if(this.zoomIndex > 0){
                         this.zoomIndex--;
@@ -1096,7 +1096,7 @@ define('app/controllers/monitoring', [
                         this.zoomIndex++;
                         this.to(this.zoomValues[this.zoomIndex].value * 60000); // (60*1000)
                     }
-                },
+                },*/
                 toIndex : function(zoomIndex){
 
                     if(zoomIndex != this.zoomIndex) {
