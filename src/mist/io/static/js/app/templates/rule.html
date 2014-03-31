@@ -1,49 +1,33 @@
 <div class="rule-box" id="{{unbound id}}">
+
     <div class="rule-if">if</div>
 
-    <a href="#"
-        class="rule-button metric"
-        data-role="button"
-        data-iconpos="right"
-        data-inline="true"
-        {{action "openMetricPopup" target="view"}}>{{metric}}</a>
+    <a class="rule-button metric ui-btn ui-btn-c ui-corner-all" {{action "openMetricPopup" target="view"}}>
+        {{metric}}
+    </a>
 
-    <a href="#"
-        class="rule-button operator"
-        data-role="button"
-        data-icon="false"
-        data-inline="true"
-        {{action "openOperatorPopup" target="view"}}>{{operator.symbol}}</a>
+    <a class="rule-button operator ui-btn ui-corner-all" {{action "openOperatorPopup" target="view"}}>
+        {{operator.symbol}}
+    </a>
 
     <div class="rule-unit">{{unit}}</div>
-    <input type="number"
-        data-type="range"
-        data-highlight="true"
-        class="rule-value"
-        {{bindAttr value="value"}}
-        min="0"
-        {{bindAttr max="maxValue"}} />
+
+    <input type="number" class="rule-value" min="0" data-type="range" data-highlight="true"
+        {{bindAttr value="value"}} {{bindAttr max="maxValue"}}/>
 
     <div class="rule-then">then</div>
 
-    <a href="#"
-        class="rule-button action"
-        data-role="button"
-        data-icon="false"
-        data-inline="true"
-        {{action "openActionPopup" target="view"}}>{{actionToTake}}</a>
+    <a class="rule-button action ui-btn ui-corner-all" {{action "openActionPopup" target="view"}}>
+        {{actionToTake}}
+    </a>
 
     {{#if pendingAction}}
-    <div class="ajax-loader"></div>
+        <div class="ajax-loader"></div>
     {{else}}
-    <div class="delete-rule-container">
-        <button class="delete-rule-button"
-                data-role="button"
-                data-icon="delete"
-                data-iconpos="notext"
-                data-mini="true"
-                {{action deleteRuleClicked target="view"}}>&nbsp;</button>
-    </div>
+        <div class="delete-rule-container">
+            <a class="delete-rule-button ui-btn ui-corner-all ui-btn-icon-notext ui-icon-delete"
+               {{action deleteRuleClicked target="view"}}>&nbsp;</a>
+        </div>
     {{/if}}
 
 </div>
